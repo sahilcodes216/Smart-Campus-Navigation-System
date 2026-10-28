@@ -1,0 +1,1148 @@
+/* Component Library - Buttons, Search, Cards, Panel, Badges, Map UI, Toast */
+
+/* 1. BUTTONS (PRD Section 7) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px; /* Accessible touch target */
+  padding: 0 var(--space-5);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--pine);
+  color: var(--paper);
+  border-color: var(--pine);
+}
+
+.btn-primary:hover {
+  background-color: var(--pine-dark);
+  border-color: var(--pine-dark);
+  color: #FFFFFF;
+}
+
+/* Secondary Outline Button */
+.btn-outline {
+  background-color: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-outline:hover {
+  border-color: var(--pine);
+  color: var(--pine);
+  background-color: rgba(14, 75, 65, 0.04);
+}
+
+/* Signal Button - Reserved for single main CTA per screen */
+.btn-signal {
+  background-color: var(--signal);
+  color: #FFFFFF;
+  border-color: var(--signal);
+}
+
+.btn-signal:hover {
+  background-color: #D34620;
+  border-color: #D34620;
+  color: #FFFFFF;
+}
+
+/* Ghost / Icon Button */
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: var(--radius-control);
+}
+
+.btn-icon:hover {
+  border-color: var(--pine);
+  color: var(--pine);
+  background-color: var(--paper-2);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  font-size: 13px;
+}
+
+/* 2. BADGES (PRD Section 4.3, 7) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  border: 1px solid;
+}
+
+.badge-verified {
+  background-color: rgba(47, 125, 79, 0.1);
+  color: var(--success);
+  border-color: rgba(47, 125, 79, 0.35);
+}
+
+.badge-sample {
+  background-color: rgba(183, 121, 31, 0.1);
+  color: var(--warn);
+  border-color: rgba(183, 121, 31, 0.35);
+}
+
+.badge-category {
+  background-color: var(--paper-2);
+  color: var(--ink-2);
+  border-color: var(--line);
+  font-family: var(--font-body);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+/* 3. SEARCH BAR & DROPDOWN (PRD Section 6.1, 6.3) */
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-bar-hero {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  min-height: 56px;
+  padding: 0 var(--space-4);
+  box-shadow: var(--shadow-subtle);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-bar-hero:focus-within {
+  border-color: var(--pine);
+  box-shadow: 0 0 0 2px rgba(14, 75, 65, 0.2);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+  min-height: 48px;
+  padding-left: var(--space-3);
+}
+
+.search-input::placeholder {
+  color: var(--ink-2);
+  opacity: 0.75;
+}
+
+.search-icon-svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--ink-2);
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.search-clear-btn {
+  background: none;
+  border: none;
+  color: var(--ink-2);
+  cursor: pointer;
+  padding: var(--space-2);
+  display: none;
+}
+
+.search-clear-btn.visible {
+  display: flex;
+}
+
+/* Dropdown results */
+.search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-panel);
+  max-height: 380px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+
+.search-results-dropdown.open {
+  display: block;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover,
+.search-result-item.highlighted {
+  background-color: var(--paper-2);
+}
+
+.search-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-result-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.search-result-sub {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.search-highlight {
+  background-color: rgba(232, 85, 45, 0.18);
+  color: var(--ink);
+  font-weight: 700;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Suggested chips below search */
+.suggested-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.suggested-label {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-right: var(--space-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 10px;
+  background-color: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.chip:hover {
+  border-color: var(--pine);
+  color: var(--pine);
+  background-color: #FFFFFF;
+}
+
+.chip.active {
+  background-color: var(--pine);
+  color: var(--paper);
+  border-color: var(--pine);
+}
+
+/* 4. HERO SECTION (PRD Section 4.5, 6.1) */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: var(--space-12);
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-20);
+}
+
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-12);
+  }
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-heading {
+  margin-bottom: var(--space-4);
+  /* staggered animation */
+  animation: fadeUp 400ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+.hero-subhead {
+  font-size: var(--text-body-lg);
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-8);
+  max-width: 520px;
+  animation: fadeUp 400ms cubic-bezier(0, 0, 0.2, 1) 60ms forwards;
+}
+
+.hero-search-area {
+  animation: fadeUp 400ms cubic-bezier(0, 0, 0.2, 1) 120ms forwards;
+}
+
+.hero-visual-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: var(--space-4);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+}
+
+.hero-visual-card svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Pulse animation on hero visual pins */
+@keyframes softPulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.pulsing-pin {
+  transform-origin: center;
+  animation: softPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 5. CATEGORY GRID (4x2 ruled grid - PRD Section 6.1) */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  margin-top: var(--space-6);
+  background: var(--paper);
+}
+
+@media (max-width: 900px) {
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.category-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--transition-fast);
+}
+
+.category-cell:hover {
+  background-color: var(--paper-2);
+}
+
+.category-icon-box {
+  width: 36px;
+  height: 36px;
+  background-color: rgba(14, 75, 65, 0.08);
+  color: var(--pine);
+  border-radius: var(--radius-control);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.category-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+/* 6. FEATURED LOCATIONS (Editorial layout: 1 large card + small ruled rows - PRD Section 6.1) */
+.featured-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 860px) {
+  .featured-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card-large {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.card-large:hover, .location-card:hover {
+  border-color: var(--pine);
+  transform: translateY(-2px);
+}
+
+.featured-rows-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+
+.featured-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--line);
+  transition: padding var(--transition-fast);
+}
+
+.featured-row-item:hover {
+  padding-left: var(--space-2);
+}
+
+/* 7. HOW IT WORKS (Horizontal strip with large mono numerals - PRD Section 6.1) */
+.how-it-works-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-top: var(--space-8);
+  background: var(--paper-2);
+}
+
+@media (max-width: 768px) {
+  .how-it-works-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.step-item {
+  padding: var(--space-6) var(--space-5);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+.step-item:last-child {
+  border-right: none;
+}
+
+@media (max-width: 768px) {
+  .step-item {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .step-item:last-child {
+    border-bottom: none;
+  }
+}
+
+.step-number {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--pine);
+  line-height: 1;
+  margin-bottom: var(--space-3);
+}
+
+.step-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: var(--space-2);
+}
+
+.step-desc {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin-bottom: 0;
+}
+
+/* 8. DIRECTORY & LOCATIONS PAGE (PRD Section 6.3) */
+.directory-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.filter-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.directory-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.view-toggle button {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.view-toggle button.active {
+  background: var(--pine);
+  color: var(--paper);
+}
+
+.locations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+@media (max-width: 992px) {
+  .locations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .locations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.locations-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+
+.location-card {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.location-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.location-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.location-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--paper-2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.location-card-desc {
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+  flex: 1;
+}
+
+.location-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+/* 9. MAP APPLICATION (70% map / 30% side panel - PRD Section 6.2) */
+.map-page-layout {
+  display: flex;
+  height: calc(100vh - 65px);
+  position: relative;
+  overflow: hidden;
+  background-color: var(--paper-2);
+}
+
+.map-main-canvas {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--paper-2);
+}
+
+.map-svg-container {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.map-svg-container.grabbing {
+  cursor: grabbing;
+}
+
+/* Map Controls Floating */
+.map-controls-floating {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.map-ctrl-btn {
+  width: 40px;
+  height: 40px;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-subtle);
+  transition: all var(--transition-fast);
+}
+
+.map-ctrl-btn:hover {
+  border-color: var(--pine);
+  color: var(--pine);
+}
+
+.map-reset-btn {
+  padding: 0 var(--space-3);
+  width: auto;
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #FFFFFF;
+}
+
+/* Map Top Chips Filter */
+.map-filter-bar {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: rgba(246, 242, 233, 0.95);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-subtle);
+  max-width: calc(100% - 180px);
+}
+
+/* Map Legend */
+.map-legend {
+  position: absolute;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 20;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-subtle);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ink-2);
+}
+
+.legend-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-line {
+  width: 16px;
+  height: 3px;
+  background: var(--signal);
+  border-radius: 2px;
+}
+
+/* Side Panel (Desktop 30%) */
+.map-side-panel {
+  width: 380px;
+  min-width: 320px;
+  max-width: 420px;
+  height: 100%;
+  background: #FFFFFF;
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  box-shadow: var(--shadow-panel);
+  transition: transform 220ms cubic-bezier(0, 0, 0.2, 1);
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .map-side-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 70vh;
+    border-left: none;
+    border-top: 1px solid var(--line);
+    border-radius: 12px 12px 0 0;
+    transform: translateY(calc(100% - 72px));
+    box-shadow: 0 -4px 16px rgba(22, 32, 28, 0.12);
+  }
+
+  .map-side-panel.expanded {
+    transform: translateY(0);
+  }
+
+  .mobile-sheet-handle {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-2) 0;
+    cursor: pointer;
+  }
+
+  .handle-bar {
+    width: 36px;
+    height: 4px;
+    background-color: var(--line);
+    border-radius: 2px;
+  }
+}
+
+@media (min-width: 901px) {
+  .mobile-sheet-handle {
+    display: none;
+  }
+}
+
+.panel-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper-2);
+}
+
+.panel-tab {
+  flex: 1;
+  padding: var(--space-3);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+
+.panel-tab.active {
+  color: var(--pine);
+  border-bottom-color: var(--pine);
+  background: #FFFFFF;
+}
+
+.panel-body {
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Route Planner Controls */
+.route-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.route-input-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.route-input-group label {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.route-select {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: #FFFFFF;
+  outline: none;
+}
+
+.route-select:focus {
+  border-color: var(--pine);
+}
+
+.route-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: 2px;
+}
+
+/* Route Results Card */
+.route-result-box {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.route-meta-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.route-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--pine);
+}
+
+.route-stat-lbl {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+  text-transform: uppercase;
+}
+
+.route-steps-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+}
+
+.route-step-item {
+  display: flex;
+  gap: var(--space-3);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.route-step-num {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--pine);
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* Detail Card in Panel */
+.detail-item-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-2);
+}
+
+.detail-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.detail-val {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* 10. MAP SVG GRAPHICS & ANIMATIONS */
+.map-marker {
+  cursor: pointer;
+  transition: transform 180ms ease-out, filter 180ms ease-out;
+  transform-origin: center;
+}
+
+.map-marker:hover,
+.map-marker:focus-visible {
+  transform: scale(1.18);
+}
+
+.map-marker.selected {
+  transform: scale(1.22);
+}
+
+.map-marker.dimmed {
+  opacity: 0.28;
+}
+
+.map-route-line {
+  stroke: var(--signal);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  /* animated draw */
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: drawRoute 600ms cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes drawRoute {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 11. TOAST NOTIFICATION (PRD Section 7) */
+.toast-container {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--ink);
+  color: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: var(--radius-control);
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-panel);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  animation: toastIn 180ms ease-out forwards;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 12. EMPTY STATE (PRD Section 6.3, 11) */
+.empty-state {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  background: var(--paper-2);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-panel);
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  margin-bottom: var(--space-2);
+}
+
+.empty-state p {
+  color: var(--ink-2);
+  max-width: 440px;
+  margin: 0 auto var(--space-4) auto;
+}
+
+/* 13. SKELETON LOADER */
+.skeleton {
+  background: linear-gradient(90deg, var(--paper-2) 25%, #EDE7D9 50%, var(--paper-2) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

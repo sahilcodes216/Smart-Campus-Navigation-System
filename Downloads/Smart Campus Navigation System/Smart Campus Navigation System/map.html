@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Map & Directions | Smart Campus Navigation</title>
+  <meta name="description" content="Interactive illustrated campus atlas map and route planner. Find buildings and calculate walking routes with Dijkstra routing.">
+  
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+<body style="overflow: hidden;">
+
+  <!-- Site Header -->
+  <header class="site-header scrolled" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Smart Campus Navigation System Home">
+        <div class="brand-logo" aria-hidden="true">A</div>
+        <div class="brand-text">
+          <span class="brand-name">Campus Atlas</span>
+          <span class="brand-subtitle">Sample University</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#floor-plans">2D Floor Plans</a></li>
+          <li><a href="map.html" class="active" aria-current="page">Campus Map & Rooms</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="headerShareMapBtn" aria-label="Share this map view">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Share View
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Map & Panel Layout (PRD Section 6.2 - Desktop 70/30, Mobile bottom sheet) -->
+  <main class="map-page-layout" role="main">
+    
+    <!-- Map Canvas Area -->
+    <div class="map-main-canvas" id="mapMainCanvas" aria-label="Campus Interactive Map View">
+      
+      <!-- Category Filter Chips Row above Map -->
+      <div class="map-filter-bar" id="mapFilterBar" role="toolbar" aria-label="Filter locations on map by category">
+        <button type="button" class="chip active" data-category="all">All Places</button>
+        <!-- Injected via script -->
+      </div>
+
+      <!-- Floating Map Zoom / Pan Controls -->
+      <div class="map-controls-floating" role="toolbar" aria-label="Map zoom and navigation controls">
+        <button type="button" class="map-ctrl-btn" id="mapZoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" class="map-ctrl-btn" id="mapZoomOut" aria-label="Zoom out" title="Zoom out">&minus;</button>
+        <button type="button" class="map-ctrl-btn map-reset-btn" id="mapResetView" aria-label="Show full campus" title="Show full campus">
+          Show full campus
+        </button>
+      </div>
+
+      <!-- Map Legend (PRD Section 6.2) -->
+      <div class="map-legend" aria-label="Map Legend">
+        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--ink);">
+          Legend
+        </div>
+        <div class="legend-row">
+          <div class="legend-color-dot" style="background: #0E4B41;"></div>
+          <span>Academic & Labs</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-color-dot" style="background: #16201C;"></div>
+          <span>Library & Admin</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-color-dot" style="background: #7C9A6B;"></div>
+          <span>Dining & Parking</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-line"></div>
+          <span>Active Route</span>
+        </div>
+      </div>
+
+      <!-- SVG Container -->
+      <div class="map-svg-container" id="svgContainer">
+        <!-- SVG will be loaded/inlined here -->
+      </div>
+    </div>
+
+    <!-- Side Panel (Desktop 30%) / Bottom Sheet (Mobile) -->
+    <aside class="map-side-panel" id="mapSidePanel" role="complementary" aria-label="Location and route details panel">
+      
+      <!-- Mobile Draggable Sheet Handle -->
+      <div class="mobile-sheet-handle" id="sheetHandle" aria-hidden="true">
+        <div class="handle-bar"></div>
+      </div>
+
+      <!-- Panel Tabs: Details vs All Rooms vs Directions -->
+      <div class="panel-tabs" role="tablist">
+        <button type="button" class="panel-tab active" id="tabBtnDetails" role="tab" aria-selected="true" aria-controls="panelDetails">
+          Place Details
+        </button>
+        <button type="button" class="panel-tab" id="tabBtnRooms" role="tab" aria-selected="false" aria-controls="panelRooms">
+          All Rooms (300)
+        </button>
+        <button type="button" class="panel-tab" id="tabBtnDirections" role="tab" aria-selected="false" aria-controls="panelDirections">
+          Directions
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Place Details (PRD Section 6.4) -->
+      <div class="panel-body" id="panelDetails" role="tabpanel" aria-labelledby="tabBtnDetails">
+        <div id="locationDetailsEmpty" style="color: var(--ink-2); font-size: 14px; text-align: center; padding: var(--space-8) 0;">
+          <p>Select any pin on the map, choose a room from the directory, or search to view complete facility specifications.</p>
+          <div style="margin-top: var(--space-4);">
+            <button type="button" class="btn btn-primary btn-sm" id="btnOpenRoomsDirectory">Browse All 300 Rooms</button>
+          </div>
+        </div>
+
+        <div id="locationDetailsContent" style="display: none; flex-direction: column; gap: var(--space-4);">
+          <div class="panel-header" style="padding: 0 0 var(--space-3) 0;">
+            <div>
+              <div id="detailBadgeContainer" style="margin-bottom: var(--space-1); display: flex; gap: 6px; flex-wrap: wrap;"></div>
+              <h2 id="detailName" style="font-size: 22px; line-height: 1.25; margin-top: 4px;">-</h2>
+            </div>
+          </div>
+
+          <p id="detailDescription" style="font-size: 14px; line-height: 1.5; color: var(--ink-2);">-</p>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 1px solid var(--line); padding-top: var(--space-3);">
+            <div class="detail-item-field" id="fieldRoomNum">
+              <span class="detail-label">Room Number</span>
+              <span class="detail-val font-mono" id="detailRoomNum" style="color: var(--pine); font-weight: 700;">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldBuilding">
+              <span class="detail-label">Building / Block</span>
+              <span class="detail-val font-mono" id="detailBuilding">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldFloor">
+              <span class="detail-label">Floor / Level</span>
+              <span class="detail-val" id="detailFloor">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldDept">
+              <span class="detail-label">Department / Wing</span>
+              <span class="detail-val" id="detailDept">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldCapacity">
+              <span class="detail-label">Capacity / Workstations</span>
+              <span class="detail-val" id="detailCapacity">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldHours">
+              <span class="detail-label">Opening Hours</span>
+              <span class="detail-val" id="detailHours">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldLandmarks">
+              <span class="detail-label">Circulation &amp; Landmarks</span>
+              <span class="detail-val" id="detailLandmarks">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldAccessibility">
+              <span class="detail-label">Accessibility</span>
+              <span class="detail-val" id="detailAccessibility" style="color: var(--success); font-weight: 600;">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldCategory">
+              <span class="detail-label">Category Group</span>
+              <span class="detail-val" id="detailCategory" style="text-transform: capitalize;">-</span>
+            </div>
+          </div>
+
+          <!-- Actions: Get Directions, View on 2D Plan, Copy link -->
+          <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--line);">
+            <button type="button" class="btn btn-signal" id="detailGetDirectionsBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
+              Get Directions Here
+            </button>
+            <a href="index.html#floor-plans" class="btn btn-outline btn-sm" id="detailViewFloorPlanBtn" style="text-decoration: none;">
+              🗺️ Highlight on 2D Floor Plan
+            </a>
+            <button type="button" class="btn btn-outline btn-sm" id="detailCopyLinkBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Link to Room
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: All Rooms Directory -->
+      <div class="panel-body" id="panelRooms" role="tabpanel" aria-labelledby="tabBtnRooms" style="display: none; flex-direction: column; gap: var(--space-3); padding: var(--space-4);">
+        <div style="position: relative;">
+          <input type="text" id="panelRoomSearch" class="search-input" placeholder="🔍 Search rooms by # or name (e.g. 14, Mess, CSE, 501)..." style="width: 100%; font-size: 13.5px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius-control); background: #ffffff;" />
+        </div>
+        <div class="filter-chips-row" id="panelFloorChips" style="overflow-x: auto; padding-bottom: 4px; gap: 4px; display: flex;">
+          <button type="button" class="chip active" data-floor="all" style="font-size: 11px; padding: 4px 8px;">All (300)</button>
+          <button type="button" class="chip" data-floor="0" style="font-size: 11px; padding: 4px 8px;">Ground</button>
+          <button type="button" class="chip" data-floor="1" style="font-size: 11px; padding: 4px 8px;">1st Fl</button>
+          <button type="button" class="chip" data-floor="2" style="font-size: 11px; padding: 4px 8px;">2nd Fl</button>
+          <button type="button" class="chip" data-floor="3" style="font-size: 11px; padding: 4px 8px;">3rd Fl</button>
+          <button type="button" class="chip" data-floor="4" style="font-size: 11px; padding: 4px 8px;">4th Fl</button>
+          <button type="button" class="chip" data-floor="5" style="font-size: 11px; padding: 4px 8px;">5th Fl</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); font-family: var(--font-mono);">
+          <span id="panelRoomCount">Showing 300 rooms</span>
+          <span style="color: var(--pine); font-weight: 600;">Click room to view data</span>
+        </div>
+        <div id="panelRoomsList" style="display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 280px); overflow-y: auto; padding-right: 4px;">
+          <!-- Injected room cards -->
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Directions (PRD Section 6.5) -->
+      <div class="panel-body" id="panelDirections" role="tabpanel" aria-labelledby="tabBtnDirections" style="display: none;">
+        
+        <form id="routeForm" class="route-form" onsubmit="event.preventDefault();">
+          <div class="route-input-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="routeStartSelect">From (Starting Point)</label>
+              <button type="button" class="btn btn-outline btn-sm" id="btnUseMainGate" style="min-height: 26px; padding: 0 8px; font-size: 11px;">
+                Use main gate
+              </button>
+            </div>
+            <select id="routeStartSelect" class="route-select">
+              <option value="">-- Choose start point --</option>
+            </select>
+            <div id="startErrorHint" class="label-mono" style="color: var(--warn); display: none;">Please select a starting location</div>
+          </div>
+
+          <div style="display: flex; justify-content: center; margin: -4px 0;">
+            <button type="button" class="btn btn-icon" id="btnSwapRoute" aria-label="Swap starting point and destination" title="Swap From and To" style="width: 36px; height: 36px; min-height: 36px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="route-input-group">
+            <label for="routeDestSelect">To (Destination)</label>
+            <select id="routeDestSelect" class="route-select">
+              <option value="">-- Choose destination --</option>
+            </select>
+            <div id="destErrorHint" class="label-mono" style="color: var(--warn); display: none;">Please select a destination</div>
+          </div>
+
+          <!-- Accessible route toggle (PRD Section 6.5, FR-14) -->
+          <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
+            <input type="checkbox" id="accessibleToggle" style="width: 16px; height: 16px; accent-color: var(--pine);">
+            <label for="accessibleToggle" style="font-size: 13px; color: var(--ink-2); cursor: pointer;">
+              Accessible route (step-free / wheelchair friendly)
+            </label>
+          </div>
+
+          <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+            <button type="submit" class="btn btn-primary" id="btnCalculateRoute" style="flex: 1;">
+              Calculate Route
+            </button>
+            <button type="button" class="btn btn-outline" id="btnClearRoute">
+              Clear
+            </button>
+          </div>
+        </form>
+
+        <!-- Route Guidance Output Area -->
+        <div id="routeOutputArea" style="margin-top: var(--space-3);">
+          <!-- Error or Route Summary Card -->
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script type="module">
+    import { appState, showToast, copyToClipboard, getUrlParams, updateUrlParam } from './js/main.js';
+    import { CampusRouter } from './js/routes.js';
+    import { CampusMapController } from './js/map.js';
+    import { CAMPUS_ROOMS, getRoomByNumber, getRoomById } from './js/rooms-data.js';
+
+    let mapController = null;
+    let router = null;
+
+    async function initMapPage() {
+      await appState.loadData();
+      router = new CampusRouter(appState.nodes, appState.edges);
+
+      // Load external SVG map into container
+      const container = document.getElementById('svgContainer');
+      try {
+        const res = await fetch('./assets/campus-map.svg');
+        const svgText = await res.text();
+        container.innerHTML = svgText;
+      } catch (err) {
+        console.error('Failed to load map SVG:', err);
+      }
+
+      const svgElement = container.querySelector('svg');
+
+      mapController = new CampusMapController({
+        container: container,
+        svg: svgElement,
+        locations: appState.locations,
+        categories: appState.categories,
+        router: router,
+        onLocationSelect: (loc) => {
+          showLocationDetails(loc);
+          updateUrlParam('loc', loc.id);
+        }
+      });
+
+      // Populate Route Selectors with Campus Locations & Rooms
+      populateRouteSelectors();
+
+      // Render Category Chips above map
+      renderCategoryBar();
+
+      // Setup Panel Tabs (Details vs Rooms vs Directions)
+      setupTabs();
+
+      // Render All Rooms in Directory Tab
+      renderRoomsTab();
+
+      // Zoom & Reset buttons
+      document.getElementById('mapZoomIn').addEventListener('click', () => mapController.zoomIn());
+      document.getElementById('mapZoomOut').addEventListener('click', () => mapController.zoomOut());
+      document.getElementById('mapResetView').addEventListener('click', () => {
+        mapController.resetView();
+        mapController.clearRoute();
+      });
+
+      // Handle Route Form actions
+      setupRouteActions();
+
+      // Handle Mobile Sheet Expand/Collapse
+      const handle = document.getElementById('sheetHandle');
+      const panel = document.getElementById('mapSidePanel');
+      if (handle) {
+        handle.addEventListener('click', () => {
+          panel.classList.toggle('expanded');
+        });
+      }
+
+      // Check URL params (?room=... or ?loc=...)
+      handleInitialUrlParams();
+
+      // Share map button
+      document.getElementById('headerShareMapBtn').addEventListener('click', () => {
+        copyToClipboard(window.location.href, 'Map link copied to clipboard');
+      });
+
+      // Browse rooms button in empty state
+      const btnOpenDir = document.getElementById('btnOpenRoomsDirectory');
+      if (btnOpenDir) {
+        btnOpenDir.addEventListener('click', () => {
+          document.getElementById('tabBtnRooms').click();
+        });
+      }
+    }
+
+    function renderCategoryBar() {
+      const bar = document.getElementById('mapFilterBar');
+      const catsHtml = appState.categories.map(c => `
+        <button type="button" class="chip" data-category="${c.id}">${c.label}</button>
+      `).join('');
+      
+      bar.insertAdjacentHTML('beforeend', catsHtml);
+
+      bar.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip');
+        if (!btn) return;
+        bar.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+
+        const catId = btn.getAttribute('data-category');
+        if (catId === 'all') {
+          mapController.filterByCategory(null);
+          updateUrlParam('cat', null);
+        } else {
+          mapController.filterByCategory(catId);
+          updateUrlParam('cat', catId);
+        }
+      });
+    }
+
+    function populateRouteSelectors() {
+      const startSelect = document.getElementById('routeStartSelect');
+      const destSelect = document.getElementById('routeDestSelect');
+
+      const sortedLocs = [...appState.locations].sort((a, b) => a.name.localeCompare(b.name));
+      const locOptions = sortedLocs.map(l => `<option value="${l.id}">${l.name} (${l.building})</option>`).join('');
+
+      // Add popular room options as destinations
+      const featuredRooms = CAMPUS_ROOMS.filter(r => r.number <= 26 || r.number % 100 === 1 || r.number % 100 === 15 || r.number % 100 === 27);
+      const roomOptions = featuredRooms.map(r => `<option value="${r.id}">Room #${r.number} — ${r.name} (${r.floorName})</option>`).join('');
+
+      const combinedHtml = `
+        <optgroup label="Campus Buildings &amp; Gates">
+          ${locOptions}
+        </optgroup>
+        <optgroup label="Academic Building Rooms">
+          ${roomOptions}
+        </optgroup>
+      `;
+
+      startSelect.innerHTML = `<option value="">-- Choose start point --</option>` + combinedHtml;
+      destSelect.innerHTML = `<option value="">-- Choose destination --</option>` + combinedHtml;
+    }
+
+    function setupTabs() {
+      const btnDetails = document.getElementById('tabBtnDetails');
+      const btnRooms = document.getElementById('tabBtnRooms');
+      const btnDirections = document.getElementById('tabBtnDirections');
+
+      const panelDetails = document.getElementById('panelDetails');
+      const panelRooms = document.getElementById('panelRooms');
+      const panelDirections = document.getElementById('panelDirections');
+
+      function switchTab(activeBtn, activePanel) {
+        [btnDetails, btnRooms, btnDirections].forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        [panelDetails, panelRooms, panelDirections].forEach(p => p.style.display = 'none');
+
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-selected', 'true');
+        activePanel.style.display = 'flex';
+      }
+
+      btnDetails.addEventListener('click', () => switchTab(btnDetails, panelDetails));
+      btnRooms.addEventListener('click', () => switchTab(btnRooms, panelRooms));
+      btnDirections.addEventListener('click', () => switchTab(btnDirections, panelDirections));
+    }
+
+    // --- ALL ROOMS TAB CONTROLLER ---
+    function renderRoomsTab() {
+      const listEl = document.getElementById('panelRoomsList');
+      const countEl = document.getElementById('panelRoomCount');
+      const searchInput = document.getElementById('panelRoomSearch');
+      const floorChips = document.getElementById('panelFloorChips');
+
+      let currentFloor = 'all';
+      let currentQuery = '';
+
+      function filterAndDisplay() {
+        let results = CAMPUS_ROOMS;
+
+        if (currentFloor !== 'all') {
+          const fIdx = parseInt(currentFloor, 10);
+          results = results.filter(r => r.floorIndex === fIdx);
+        }
+
+        if (currentQuery) {
+          const q = currentQuery.toLowerCase();
+          results = results.filter(r => 
+            r.number.toString().includes(q) || 
+            r.name.toLowerCase().includes(q) || 
+            r.category.toLowerCase().includes(q) ||
+            r.department.toLowerCase().includes(q)
+          );
+        }
+
+        countEl.textContent = `Showing ${results.length} of ${CAMPUS_ROOMS.length} rooms`;
+
+        if (results.length === 0) {
+          listEl.innerHTML = `<div style="padding: 1.5rem; text-align: center; color: var(--ink-2); font-size: 13.5px;">No rooms found matching "${currentQuery}".</div>`;
+          return;
+        }
+
+        listEl.innerHTML = results.map(r => `
+          <div class="room-panel-item" data-room-num="${r.number}" style="background:#ffffff; border:1px solid var(--line); border-radius:8px; padding:10px 12px; cursor:pointer; transition:all 0.15s ease; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--paper); background:var(--pine); padding:1px 6px; border-radius:4px;">#${r.number}</span>
+                <strong style="font-size:13.5px; color:var(--ink);">${r.name}</strong>
+              </div>
+              <div style="font-size:12px; color:var(--ink-2); margin-top:2px;">
+                ${r.floorName} • <span style="text-transform:capitalize;">${r.category}</span>
+              </div>
+            </div>
+            <span style="color:var(--signal); font-weight:700; font-size:12px; white-space:nowrap;">View ➔</span>
+          </div>
+        `).join('');
+      }
+
+      // Live search input
+      let searchTimeout = null;
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          currentQuery = e.target.value.trim();
+          filterAndDisplay();
+        }, 60);
+      });
+
+      // Floor filter pills
+      floorChips.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip');
+        if (!btn) return;
+        floorChips.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFloor = btn.getAttribute('data-floor');
+        filterAndDisplay();
+      });
+
+      // Event delegation when clicking any room item
+      listEl.addEventListener('click', (e) => {
+        const item = e.target.closest('.room-panel-item');
+        if (!item) return;
+        const num = parseInt(item.getAttribute('data-room-num'), 10);
+        const room = getRoomByNumber(num);
+        if (room) {
+          showLocationDetails(room);
+          updateUrlParam('room', room.number);
+        }
+      });
+
+      // Initial render of 300 rooms
+      filterAndDisplay();
+    }
+
+    // --- DISPLAY COMPLETE ROOM / LOCATION SPECIFICATIONS ---
+    function showLocationDetails(loc) {
+      if (!loc) return;
+
+      const emptyState = document.getElementById('locationDetailsEmpty');
+      const contentState = document.getElementById('locationDetailsContent');
+      const panel = document.getElementById('mapSidePanel');
+
+      // Switch to details tab
+      document.getElementById('tabBtnDetails').click();
+      panel.classList.add('expanded');
+
+      emptyState.style.display = 'none';
+      contentState.style.display = 'flex';
+
+      // Badge Container
+      const badgeContainer = document.getElementById('detailBadgeContainer');
+      const isRoom = Boolean(loc.number);
+
+      if (isRoom) {
+        badgeContainer.innerHTML = `
+          <span class="badge" style="background:var(--pine); color:#fff; font-weight:700; font-family:var(--font-mono);">Room #${loc.number}</span>
+          <span class="badge" style="background:#e8f0fe; color:#1a73e8; font-weight:600;">${loc.floorName || loc.floor}</span>
+          <span class="badge" style="background:var(--paper-2); color:var(--ink);">${loc.category}</span>
+          <span class="badge badge-verified">Verified Room Record</span>
+        `;
+      } else if (loc.verified) {
+        badgeContainer.innerHTML = `<span class="badge badge-verified">Verified by campus office</span>`;
+      } else {
+        badgeContainer.innerHTML = `<span class="badge badge-sample">Sample data, not verified</span>`;
+      }
+
+      document.getElementById('detailName').textContent = isRoom ? `#${loc.number} — ${loc.name}` : loc.name;
+      document.getElementById('detailDescription').textContent = loc.description || '';
+      document.getElementById('detailBuilding').textContent = loc.building || 'Academic Main Building';
+      document.getElementById('detailFloor').textContent = loc.floor || loc.floorName || '';
+      document.getElementById('detailCategory').textContent = loc.category || '';
+
+      // Room Number Field
+      const fieldRoomNum = document.getElementById('fieldRoomNum');
+      if (isRoom) {
+        fieldRoomNum.style.display = 'flex';
+        document.getElementById('detailRoomNum').textContent = `#${loc.number} (${loc.level || loc.floorName})`;
+      } else {
+        fieldRoomNum.style.display = 'none';
+      }
+
+      // Department Field
+      const fieldDept = document.getElementById('fieldDept');
+      if (loc.department) {
+        fieldDept.style.display = 'flex';
+        document.getElementById('detailDept').textContent = loc.department;
+      } else {
+        fieldDept.style.display = 'none';
+      }
+
+      // Capacity Field
+      const fieldCapacity = document.getElementById('fieldCapacity');
+      if (loc.capacity) {
+        fieldCapacity.style.display = 'flex';
+        document.getElementById('detailCapacity').textContent = loc.capacity;
+      } else {
+        fieldCapacity.style.display = 'none';
+      }
+
+      // Hours Field
+      const fieldHours = document.getElementById('fieldHours');
+      if (loc.hours) {
+        fieldHours.style.display = 'flex';
+        document.getElementById('detailHours').textContent = loc.hours;
+      } else {
+        fieldHours.style.display = 'none';
+      }
+
+      // Circulation & Landmarks Field
+      const fieldLandmarks = document.getElementById('fieldLandmarks');
+      if (loc.landmarks && loc.landmarks.length > 0) {
+        fieldLandmarks.style.display = 'flex';
+        document.getElementById('detailLandmarks').textContent = loc.landmarks.join(', ');
+      } else {
+        fieldLandmarks.style.display = 'none';
+      }
+
+      // Accessibility Field
+      const fieldAccessibility = document.getElementById('fieldAccessibility');
+      if (loc.accessibility) {
+        fieldAccessibility.style.display = 'flex';
+        document.getElementById('detailAccessibility').textContent = loc.accessibility;
+      } else {
+        fieldAccessibility.style.display = 'none';
+      }
+
+      // 2D Floor Plan Action Link
+      const floorPlanBtn = document.getElementById('detailViewFloorPlanBtn');
+      if (isRoom) {
+        floorPlanBtn.href = `index.html?highlight=${loc.number}#floor-plans`;
+        floorPlanBtn.innerHTML = `🗺️ Highlight Room #${loc.number} on 2D Plan`;
+        floorPlanBtn.style.display = 'inline-flex';
+      } else {
+        floorPlanBtn.href = `index.html#floor-plans`;
+        floorPlanBtn.innerHTML = `🗺️ View 2D Floor Plans`;
+        floorPlanBtn.style.display = 'inline-flex';
+      }
+
+      // Directions Action Button
+      const dirBtn = document.getElementById('detailGetDirectionsBtn');
+      dirBtn.onclick = () => {
+        document.getElementById('tabBtnDirections').click();
+        const destSelect = document.getElementById('routeDestSelect');
+
+        // Check if option exists or match to academic building
+        let matchingOpt = Array.from(destSelect.options).find(o => o.value === loc.id);
+        if (matchingOpt) {
+          destSelect.value = loc.id;
+        } else {
+          destSelect.value = 'founders-hall'; // Primary academic building node
+        }
+
+        // Default start to main gate if not selected
+        const startVal = document.getElementById('routeStartSelect').value;
+        if (!startVal) {
+          document.getElementById('routeStartSelect').value = 'main-gate';
+        }
+        triggerCalculateRoute();
+      };
+
+      // Copy Link Button
+      const copyBtn = document.getElementById('detailCopyLinkBtn');
+      copyBtn.onclick = () => {
+        const url = new URL(window.location.origin + window.location.pathname);
+        if (isRoom) {
+          url.searchParams.set('room', loc.number);
+        } else {
+          url.searchParams.set('loc', loc.id);
+        }
+        copyToClipboard(url.toString(), isRoom ? `Link to Room #${loc.number} copied` : 'Location link copied');
+      };
+
+      // Center map on location/building
+      if (loc.coords && mapController) {
+        mapController.panToPoint(loc.coords.x, loc.coords.y);
+      }
+    }
+
+    function setupRouteActions() {
+      // Use main gate
+      document.getElementById('btnUseMainGate').addEventListener('click', () => {
+        document.getElementById('routeStartSelect').value = 'main-gate';
+        document.getElementById('startErrorHint').style.display = 'none';
+      });
+
+      // Swap
+      document.getElementById('btnSwapRoute').addEventListener('click', () => {
+        const startSel = document.getElementById('routeStartSelect');
+        const destSel = document.getElementById('routeDestSelect');
+        const temp = startSel.value;
+        startSel.value = destSel.value;
+        destSel.value = temp;
+        if (startSel.value && destSel.value) {
+          triggerCalculateRoute();
+        }
+      });
+
+      // Calculate
+      document.getElementById('routeForm').addEventListener('submit', () => {
+        triggerCalculateRoute();
+      });
+
+      // Clear
+      document.getElementById('btnClearRoute').addEventListener('click', () => {
+        document.getElementById('routeStartSelect').value = '';
+        document.getElementById('routeDestSelect').value = '';
+        document.getElementById('routeOutputArea').innerHTML = '';
+        mapController.clearRoute();
+        updateUrlParam('from', null);
+        updateUrlParam('to', null);
+      });
+    }
+
+    function triggerCalculateRoute() {
+      const startId = document.getElementById('routeStartSelect').value;
+      const destId = document.getElementById('routeDestSelect').value;
+      const accessible = document.getElementById('accessibleToggle').checked;
+
+      const startHint = document.getElementById('startErrorHint');
+      const destHint = document.getElementById('destErrorHint');
+      const output = document.getElementById('routeOutputArea');
+
+      startHint.style.display = startId ? 'none' : 'block';
+      destHint.style.display = destId ? 'none' : 'block';
+
+      if (!startId || !destId) {
+        return;
+      }
+
+      const startLoc = appState.getLocationOrRoom(startId) || { nodeId: 'n01', name: 'Starting Point' };
+      const destLoc = appState.getLocationOrRoom(destId) || { nodeId: 'n03', name: 'Destination' };
+
+      const startNodeId = startLoc.nodeId || 'n01';
+      const destNodeId = destLoc.nodeId || 'n03';
+
+      const result = router.findRoute(startNodeId, destNodeId, accessible);
+
+      updateUrlParam('from', startId);
+      updateUrlParam('to', destId);
+
+      // Handle Errors
+      if (!result.success) {
+        mapController.clearRoute();
+        output.innerHTML = `
+          <div class="empty-state" style="padding: var(--space-4);">
+            <h4 style="font-size: 16px; margin-bottom: 4px; color: var(--warn);">${result.message}</h4>
+            <p style="font-size: 13px; margin: 0;">Try choosing a different starting point or turning off the step-free toggle.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Draw route on map
+      mapController.drawRoute(result.pathNodes);
+
+      // Format Directions Output
+      output.innerHTML = `
+        <div class="route-result-box">
+          <div class="route-meta-strip">
+            <div class="route-stat">
+              <span class="route-stat-val">${result.totalMeters} m</span>
+              <span class="route-stat-lbl">Walking Distance</span>
+            </div>
+            <div class="route-stat" style="text-align: right;">
+              <span class="route-stat-val">~${result.estimatedMinutes} min</span>
+              <span class="route-stat-lbl">Estimated Time</span>
+            </div>
+          </div>
+
+          <ol class="route-steps-list">
+            ${result.steps.map(s => `
+              <li class="route-step-item">
+                <span class="route-step-num">${s.step}</span>
+                <span>${s.instruction}</span>
+              </li>
+            `).join('')}
+          </ol>
+
+          <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2); border-top: 1px solid var(--line); padding-top: var(--space-3);">
+            <button type="button" class="btn btn-outline btn-sm" id="btnCopyDirections" style="flex: 1;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Directions
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="btnPrintDirections">
+              Print
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Copy text directions
+      document.getElementById('btnCopyDirections').addEventListener('click', () => {
+        const text = `Route from ${startLoc.name} to ${destLoc.name} (${result.totalMeters} m, ~${result.estimatedMinutes} min):\n\n` +
+          result.steps.map(s => `${s.step}. ${s.instruction}`).join('\n');
+        copyToClipboard(text, 'Directions copied');
+      });
+
+      // Print action
+      document.getElementById('btnPrintDirections').addEventListener('click', () => {
+        window.print();
+      });
+    }
+
+    function handleInitialUrlParams() {
+      const params = getUrlParams();
+
+      // Check ?room=... (e.g. from index.html click or direct link)
+      if (params.room) {
+        const room = getRoomByNumber(params.room) || getRoomById(params.room);
+        if (room) {
+          showLocationDetails(room);
+          return;
+        }
+      }
+
+      if (params.cat && params.cat.length > 0) {
+        const catId = params.cat[0];
+        const chip = document.querySelector(`.map-filter-bar .chip[data-category="${catId}"]`);
+        if (chip) chip.click();
+      }
+
+      if (params.loc) {
+        const loc = appState.getLocationById(params.loc) || getRoomById(params.loc) || getRoomByNumber(params.loc);
+        if (loc) {
+          showLocationDetails(loc);
+        }
+      }
+
+      if (params.from && params.to) {
+        document.getElementById('routeStartSelect').value = params.from;
+        document.getElementById('routeDestSelect').value = params.to;
+        document.getElementById('tabBtnDirections').click();
+        triggerCalculateRoute();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initMapPage);
+  </script>
+</body>
+</html>
