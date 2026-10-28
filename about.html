@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About & Data Verification | Smart Campus Navigation</title>
+  <meta name="description" content="Project purpose, data verification standards, accessibility commitments, and how to submit corrections to the campus atlas.">
+  
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header scrolled" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Smart Campus Navigation System Home">
+        <div class="brand-logo" aria-hidden="true">A</div>
+        <div class="brand-text">
+          <span class="brand-name">Campus Atlas</span>
+          <span class="brand-subtitle">Sample University</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="map.html">Campus Map</a></li>
+          <li><a href="locations.html">Explore Locations</a></li>
+          <li><a href="about.html" class="active" aria-current="page">About</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="map.html" class="btn btn-signal btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+          Open Map
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="section" role="main" style="padding-top: var(--space-12);">
+    <div class="container" style="max-width: 860px;">
+      
+      <!-- Page Title -->
+      <div style="margin-bottom: var(--space-8);">
+        <span class="label-mono">Project Overview</span>
+        <h1 style="font-size: var(--text-h2); margin-top: 4px;">About The Campus Atlas</h1>
+        <p class="lead">A fast, static spatial guide built to help students, staff and guests reach university destinations quickly without confusion.</p>
+      </div>
+
+      <!-- Section 1: Concept & Purpose -->
+      <article style="margin-bottom: var(--space-12);">
+        <h2>Design Concept: The Printed Campus Atlas</h2>
+        <p>The Smart Campus Navigation System was designed around a distinct philosophy: bringing the elegance and clarity of a well-made printed atlas to an interactive web experience.</p>
+        <p>Instead of generic AI templates, glossy glass gradients or neon shadows, the site is grounded in calm paper tones (<code class="font-mono">#F6F2E9</code>), deep pine green (<code class="font-mono">#0E4B41</code>), and a single high-contrast signal orange (<code class="font-mono">#E8552D</code>) reserved exclusively for navigation routes and principal actions.</p>
+      </article>
+
+      <!-- Section 2: Data Honesty & Verification Standards -->
+      <article style="margin-bottom: var(--space-12); padding: var(--space-6); background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-panel);">
+        <span class="label-mono">Honest Data Policy</span>
+        <h2 style="margin-top: 4px; margin-bottom: var(--space-3);">Verified vs. Sample Data</h2>
+        <p>In accordance with the project specification (PRD v2.0 Section 2 and Section 13), sample data is never presented as factual. Every location record is explicitly categorized:</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin: var(--space-4) 0;">
+          <div style="background: #FFFFFF; border: 1px solid var(--line); border-radius: var(--radius-control); padding: var(--space-4);">
+            <div style="margin-bottom: var(--space-2);">
+              <span class="badge badge-verified">Verified by campus office</span>
+            </div>
+            <p style="font-size: 13.5px; margin: 0;">Coordinates, room designations, operating hours, and entrance doors have been confirmed directly on-site by university campus facilities staff.</p>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid var(--line); border-radius: var(--radius-control); padding: var(--space-4);">
+            <div style="margin-bottom: var(--space-2);">
+              <span class="badge badge-sample">Sample data, not verified</span>
+            </div>
+            <p style="font-size: 13.5px; margin: 0;">Populated for testing, demonstration, or structural modeling. Unverified details (such as hours or specific phone numbers) are deliberately omitted rather than guessed.</p>
+          </div>
+        </div>
+
+        <p style="font-size: 14px; margin-top: var(--space-3);">To replace sample data with production data, campus administrators can simply update the static <code class="font-mono">data/locations.json</code> schema and mark locations as <code class="font-mono">"verified": true</code>.</p>
+      </article>
+
+      <!-- Section 3: Routing Architecture -->
+      <article style="margin-bottom: var(--space-12);">
+        <h2>Dijkstra Shortest Path Routing</h2>
+        <p>Navigation directions are calculated mathematically in the browser using Dijkstra's algorithm running across a weighted graph network of campus nodes and walkable paths.</p>
+        <ul style="margin-left: var(--space-6); margin-bottom: var(--space-4); color: var(--ink-2); display: flex; flex-direction: column; gap: var(--space-2);">
+          <li><strong>Walkable Edge Weights:</strong> Measured in real meters along paved walkways.</li>
+          <li><strong>Estimated Walk Time:</strong> Computed at a standard calibrated walking speed of 80 meters per minute (4.8 km/h).</li>
+          <li><strong>Step-Free Accessibility:</strong> Walkway segments feature an <code class="font-mono">accessible: true/false</code> flag to support ramp and elevator-only navigation.</li>
+        </ul>
+      </article>
+
+      <!-- Section 4: Privacy & Performance Targets -->
+      <article style="margin-bottom: var(--space-12);">
+        <h2>Performance & Privacy Guarantees</h2>
+        <div style="border-top: 1px solid var(--line); margin-top: var(--space-4);">
+          <div style="display: flex; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--line);">
+            <span>Zero Tracking & Cookies</span>
+            <span class="label-mono" style="color: var(--pine);">No cookies or analytics</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--line);">
+            <span>No Geolocation Permission Demands</span>
+            <span class="label-mono" style="color: var(--pine);">Privacy-first search selection</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--line);">
+            <span>Total Bundle Weight</span>
+            <span class="label-mono" style="color: var(--pine);">&lt; 60 KB unminified JS</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: var(--space-3) 0; border-bottom: 1px solid var(--line);">
+            <span>Accessibility Target</span>
+            <span class="label-mono" style="color: var(--pine);">WCAG 2.2 AA Contrast & 44px touch targets</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Section 5: Submitting Corrections -->
+      <article style="margin-bottom: var(--space-12); padding-top: var(--space-6); border-top: 1px solid var(--line);">
+        <h2>Submitting Corrections or Updates</h2>
+        <p>Notice a newly renovated lab, an altered hallway name, or changed library operating hours? Campus members can suggest corrections to the facility directory.</p>
+        
+        <form style="display: flex; flex-direction: column; gap: var(--space-3); max-width: 500px; margin-top: var(--space-4);" onsubmit="event.preventDefault(); showToast('Thank you! Correction submitted for review.'); this.reset();">
+          <div>
+            <label for="corrLocation" style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Location Name or Code</label>
+            <input type="text" id="corrLocation" class="search-input" style="border: 1px solid var(--line); border-radius: var(--radius-control); width: 100%; min-height: 40px;" placeholder="e.g. Physics Lab 2, Block B" required>
+          </div>
+          <div>
+            <label for="corrDetails" style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Proposed Correction</label>
+            <textarea id="corrDetails" class="search-input" style="border: 1px solid var(--line); border-radius: var(--radius-control); width: 100%; min-height: 90px; padding-top: 8px;" placeholder="Describe what changed (e.g. relocated to 3rd floor, wheelchair ramp added)" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="align-self: flex-start; margin-top: var(--space-2);">
+            Submit Correction
+          </button>
+        </form>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="brand" style="margin-bottom: var(--space-3);">
+            <div class="brand-logo" aria-hidden="true">A</div>
+            <div class="brand-text">
+              <span class="brand-name">Campus Atlas</span>
+              <span class="brand-subtitle">Sample University</span>
+            </div>
+          </div>
+          <p style="max-width: 380px;">An accurate, accessible spatial guide helping university members and visitors navigate campus facilities with clarity and ease.</p>
+          <p style="font-size: 13px; color: var(--ink-2); margin-top: var(--space-4);">
+            <strong>Data Status:</strong> All current entries are labeled Verified or Sample. Sample data is provided for testing and is never presented as factual.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul class="footer-nav">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="map.html">Interactive Campus Map</a></li>
+            <li><a href="locations.html">Explore Locations Directory</a></li>
+            <li><a href="about.html">About & Data Verification</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Quick Categories</h4>
+          <ul class="footer-nav">
+            <li><a href="locations.html?cat=academic">Academic Blocks</a></li>
+            <li><a href="locations.html?cat=library">Libraries & Archives</a></li>
+            <li><a href="locations.html?cat=lab">Laboratories</a></li>
+            <li><a href="locations.html?cat=cafeteria">Cafeterias & Food</a></li>
+            <li><a href="locations.html?cat=parking">Parking Lots</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Sample University Campus Atlas. All rights reserved.</div>
+        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);">
+          Built as a student project. No tracking cookies.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { showToast } from './js/main.js';
+    window.showToast = showToast;
+  </script>
+</body>
+</html>

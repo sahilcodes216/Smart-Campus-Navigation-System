@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Map & Directions | Smart Campus Navigation</title>
+  <meta name="description" content="Interactive illustrated campus atlas map and route planner. Find buildings and calculate walking routes with Dijkstra routing.">
+  
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+<body style="overflow: hidden;">
+
+  <!-- Site Header -->
+  <header class="site-header scrolled" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Smart Campus Navigation System Home">
+        <div class="brand-logo" aria-hidden="true">A</div>
+        <div class="brand-text">
+          <span class="brand-name">Campus Atlas</span>
+          <span class="brand-subtitle">Sample University</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="map.html" class="active" aria-current="page">Campus Map</a></li>
+          <li><a href="locations.html">Explore Locations</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="headerShareMapBtn" aria-label="Share this map view">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Share View
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Map & Panel Layout (PRD Section 6.2 - Desktop 70/30, Mobile bottom sheet) -->
+  <main class="map-page-layout" role="main">
+    
+    <!-- Map Canvas Area -->
+    <div class="map-main-canvas" id="mapMainCanvas" aria-label="Campus Interactive Map View">
+      
+      <!-- Category Filter Chips Row above Map -->
+      <div class="map-filter-bar" id="mapFilterBar" role="toolbar" aria-label="Filter locations on map by category">
+        <button type="button" class="chip active" data-category="all">All Places</button>
+        <!-- Injected via script -->
+      </div>
+
+      <!-- Floating Map Zoom / Pan Controls -->
+      <div class="map-controls-floating" role="toolbar" aria-label="Map zoom and navigation controls">
+        <button type="button" class="map-ctrl-btn" id="mapZoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" class="map-ctrl-btn" id="mapZoomOut" aria-label="Zoom out" title="Zoom out">&minus;</button>
+        <button type="button" class="map-ctrl-btn map-reset-btn" id="mapResetView" aria-label="Show full campus" title="Show full campus">
+          Show full campus
+        </button>
+      </div>
+
+      <!-- Map Legend (PRD Section 6.2) -->
+      <div class="map-legend" aria-label="Map Legend">
+        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--ink);">
+          Legend
+        </div>
+        <div class="legend-row">
+          <div class="legend-color-dot" style="background: #0E4B41;"></div>
+          <span>Academic & Labs</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-color-dot" style="background: #16201C;"></div>
+          <span>Library & Admin</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-color-dot" style="background: #7C9A6B;"></div>
+          <span>Dining & Parking</span>
+        </div>
+        <div class="legend-row">
+          <div class="legend-line"></div>
+          <span>Active Route</span>
+        </div>
+      </div>
+
+      <!-- SVG Container -->
+      <div class="map-svg-container" id="svgContainer">
+        <!-- SVG will be loaded/inlined here -->
+      </div>
+    </div>
+
+    <!-- Side Panel (Desktop 30%) / Bottom Sheet (Mobile) -->
+    <aside class="map-side-panel" id="mapSidePanel" role="complementary" aria-label="Location and route details panel">
+      
+      <!-- Mobile Draggable Sheet Handle -->
+      <div class="mobile-sheet-handle" id="sheetHandle" aria-hidden="true">
+        <div class="handle-bar"></div>
+      </div>
+
+      <!-- Panel Tabs: Details vs Directions -->
+      <div class="panel-tabs" role="tablist">
+        <button type="button" class="panel-tab active" id="tabBtnDetails" role="tab" aria-selected="true" aria-controls="panelDetails">
+          Place Details
+        </button>
+        <button type="button" class="panel-tab" id="tabBtnDirections" role="tab" aria-selected="false" aria-controls="panelDirections">
+          Directions
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Place Details (PRD Section 6.4) -->
+      <div class="panel-body" id="panelDetails" role="tabpanel" aria-labelledby="tabBtnDetails">
+        <div id="locationDetailsEmpty" style="color: var(--ink-2); font-size: 14px; text-align: center; padding: var(--space-8) 0;">
+          <p>Select any pin on the map or search to view facility specifications, entrance points, and floor guides.</p>
+          <div style="margin-top: var(--space-4);">
+            <a href="locations.html" class="btn btn-outline btn-sm">Browse Directory</a>
+          </div>
+        </div>
+
+        <div id="locationDetailsContent" style="display: none; flex-direction: column; gap: var(--space-4);">
+          <div class="panel-header" style="padding: 0 0 var(--space-3) 0;">
+            <div>
+              <div id="detailBadgeContainer" style="margin-bottom: var(--space-1);"></div>
+              <h2 id="detailName" style="font-size: 24px; line-height: 1.2;">-</h2>
+            </div>
+          </div>
+
+          <p id="detailDescription" style="font-size: 14.5px; line-height: 1.5; color: var(--ink-2);">-</p>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 1px solid var(--line); padding-top: var(--space-3);">
+            <div class="detail-item-field" id="fieldBuilding">
+              <span class="detail-label">Building / Block</span>
+              <span class="detail-val font-mono" id="detailBuilding">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldFloor">
+              <span class="detail-label">Floor / Level</span>
+              <span class="detail-val" id="detailFloor">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldHours">
+              <span class="detail-label">Opening Hours</span>
+              <span class="detail-val" id="detailHours">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldLandmarks">
+              <span class="detail-label">Nearby Landmarks</span>
+              <span class="detail-val" id="detailLandmarks">-</span>
+            </div>
+
+            <div class="detail-item-field" id="fieldCategory">
+              <span class="detail-label">Category Group</span>
+              <span class="detail-val" id="detailCategory" style="text-transform: capitalize;">-</span>
+            </div>
+          </div>
+
+          <!-- Actions: Get Directions, View on map, Copy link (PRD Section 6.4) -->
+          <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--line);">
+            <button type="button" class="btn btn-signal" id="detailGetDirectionsBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+              </svg>
+              Get Directions Here
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="detailCopyLinkBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Link to Place
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Directions (PRD Section 6.5) -->
+      <div class="panel-body" id="panelDirections" role="tabpanel" aria-labelledby="tabBtnDirections" style="display: none;">
+        
+        <form id="routeForm" class="route-form" onsubmit="event.preventDefault();">
+          <div class="route-input-group">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="routeStartSelect">From (Starting Point)</label>
+              <button type="button" class="btn btn-outline btn-sm" id="btnUseMainGate" style="min-height: 26px; padding: 0 8px; font-size: 11px;">
+                Use main gate
+              </button>
+            </div>
+            <select id="routeStartSelect" class="route-select">
+              <option value="">-- Choose start point --</option>
+            </select>
+            <div id="startErrorHint" class="label-mono" style="color: var(--warn); display: none;">Please select a starting location</div>
+          </div>
+
+          <div style="display: flex; justify-content: center; margin: -4px 0;">
+            <button type="button" class="btn btn-icon" id="btnSwapRoute" aria-label="Swap starting point and destination" title="Swap From and To" style="width: 36px; height: 36px; min-height: 36px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="route-input-group">
+            <label for="routeDestSelect">To (Destination)</label>
+            <select id="routeDestSelect" class="route-select">
+              <option value="">-- Choose destination --</option>
+            </select>
+            <div id="destErrorHint" class="label-mono" style="color: var(--warn); display: none;">Please select a destination</div>
+          </div>
+
+          <!-- Accessible route toggle (PRD Section 6.5, FR-14) -->
+          <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
+            <input type="checkbox" id="accessibleToggle" style="width: 16px; height: 16px; accent-color: var(--pine);">
+            <label for="accessibleToggle" style="font-size: 13px; color: var(--ink-2); cursor: pointer;">
+              Accessible route (step-free / wheelchair friendly)
+            </label>
+          </div>
+
+          <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+            <button type="submit" class="btn btn-primary" id="btnCalculateRoute" style="flex: 1;">
+              Calculate Route
+            </button>
+            <button type="button" class="btn btn-outline" id="btnClearRoute">
+              Clear
+            </button>
+          </div>
+        </form>
+
+        <!-- Route Guidance Output Area -->
+        <div id="routeOutputArea" style="margin-top: var(--space-3);">
+          <!-- Error or Route Summary Card -->
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script type="module">
+    import { appState, showToast, copyToClipboard, getUrlParams, updateUrlParam } from './js/main.js';
+    import { CampusRouter } from './js/routes.js';
+    import { CampusMapController } from './js/map.js';
+
+    let mapController = null;
+    let router = null;
+
+    async function initMapPage() {
+      await appState.loadData();
+      router = new CampusRouter(appState.nodes, appState.edges);
+
+      // Load external SVG map into container
+      const container = document.getElementById('svgContainer');
+      try {
+        const res = await fetch('./assets/campus-map.svg');
+        const svgText = await res.text();
+        container.innerHTML = svgText;
+      } catch (err) {
+        console.error('Failed to load map SVG:', err);
+      }
+
+      const svgElement = container.querySelector('svg');
+
+      mapController = new CampusMapController({
+        container: container,
+        svg: svgElement,
+        locations: appState.locations,
+        categories: appState.categories,
+        router: router,
+        onLocationSelect: (loc) => {
+          showLocationDetails(loc);
+          updateUrlParam('loc', loc.id);
+        }
+      });
+
+      // Populate Route Selectors
+      populateRouteSelectors();
+
+      // Render Category Chips above map
+      renderCategoryBar();
+
+      // Setup Panel Tabs
+      setupTabs();
+
+      // Zoom & Reset buttons
+      document.getElementById('mapZoomIn').addEventListener('click', () => mapController.zoomIn());
+      document.getElementById('mapZoomOut').addEventListener('click', () => mapController.zoomOut());
+      document.getElementById('mapResetView').addEventListener('click', () => {
+        mapController.resetView();
+        mapController.clearRoute();
+      });
+
+      // Handle Route Form actions
+      setupRouteActions();
+
+      // Handle Mobile Sheet Expand/Collapse
+      const handle = document.getElementById('sheetHandle');
+      const panel = document.getElementById('mapSidePanel');
+      if (handle) {
+        handle.addEventListener('click', () => {
+          panel.classList.toggle('expanded');
+        });
+      }
+
+      // Check URL params
+      handleInitialUrlParams();
+
+      // Share map button
+      document.getElementById('headerShareMapBtn').addEventListener('click', () => {
+        copyToClipboard(window.location.href, 'Map link copied to clipboard');
+      });
+    }
+
+    function renderCategoryBar() {
+      const bar = document.getElementById('mapFilterBar');
+      const catsHtml = appState.categories.map(c => `
+        <button type="button" class="chip" data-category="${c.id}">${c.label}</button>
+      `).join('');
+      
+      bar.insertAdjacentHTML('beforeend', catsHtml);
+
+      bar.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip');
+        if (!btn) return;
+        bar.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+
+        const catId = btn.getAttribute('data-category');
+        if (catId === 'all') {
+          mapController.filterByCategory(null);
+          updateUrlParam('cat', null);
+        } else {
+          mapController.filterByCategory(catId);
+          updateUrlParam('cat', catId);
+        }
+      });
+    }
+
+    function populateRouteSelectors() {
+      const startSelect = document.getElementById('routeStartSelect');
+      const destSelect = document.getElementById('routeDestSelect');
+
+      const sorted = [...appState.locations].sort((a, b) => a.name.localeCompare(b.name));
+      const optionsHtml = sorted.map(l => `<option value="${l.id}">${l.name} (${l.building})</option>`).join('');
+
+      startSelect.insertAdjacentHTML('beforeend', optionsHtml);
+      destSelect.insertAdjacentHTML('beforeend', optionsHtml);
+    }
+
+    function setupTabs() {
+      const btnDetails = document.getElementById('tabBtnDetails');
+      const btnDirections = document.getElementById('tabBtnDirections');
+      const panelDetails = document.getElementById('panelDetails');
+      const panelDirections = document.getElementById('panelDirections');
+
+      btnDetails.addEventListener('click', () => {
+        btnDetails.classList.add('active');
+        btnDetails.setAttribute('aria-selected', 'true');
+        btnDirections.classList.remove('active');
+        btnDirections.setAttribute('aria-selected', 'false');
+        panelDetails.style.display = 'flex';
+        panelDirections.style.display = 'none';
+      });
+
+      btnDirections.addEventListener('click', () => {
+        btnDirections.classList.add('active');
+        btnDirections.setAttribute('aria-selected', 'true');
+        btnDetails.classList.remove('active');
+        btnDetails.setAttribute('aria-selected', 'false');
+        panelDirections.style.display = 'flex';
+        panelDetails.style.display = 'none';
+      });
+    }
+
+    function showLocationDetails(loc) {
+      const emptyState = document.getElementById('locationDetailsEmpty');
+      const contentState = document.getElementById('locationDetailsContent');
+      const panel = document.getElementById('mapSidePanel');
+
+      // Switch to details tab
+      document.getElementById('tabBtnDetails').click();
+      panel.classList.add('expanded');
+
+      emptyState.style.display = 'none';
+      contentState.style.display = 'flex';
+
+      // Badge
+      const badgeContainer = document.getElementById('detailBadgeContainer');
+      if (loc.verified) {
+        badgeContainer.innerHTML = `<span class="badge badge-verified">Verified by campus office</span>`;
+      } else {
+        badgeContainer.innerHTML = `<span class="badge badge-sample">Sample data, not verified</span>`;
+      }
+
+      document.getElementById('detailName').textContent = loc.name;
+      document.getElementById('detailDescription').textContent = loc.description || '';
+      document.getElementById('detailBuilding').textContent = loc.building || '';
+      document.getElementById('detailFloor').textContent = loc.floor || '';
+      document.getElementById('detailCategory').textContent = loc.category || '';
+
+      // Hours - PRD: Hide if not verified / null
+      const fieldHours = document.getElementById('fieldHours');
+      if (loc.hours) {
+        fieldHours.style.display = 'flex';
+        document.getElementById('detailHours').textContent = loc.hours;
+      } else {
+        fieldHours.style.display = 'none';
+      }
+
+      // Landmarks
+      const fieldLandmarks = document.getElementById('fieldLandmarks');
+      if (loc.landmarks && loc.landmarks.length > 0) {
+        fieldLandmarks.style.display = 'flex';
+        document.getElementById('detailLandmarks').textContent = loc.landmarks.join(', ');
+      } else {
+        fieldLandmarks.style.display = 'none';
+      }
+
+      // Actions
+      const dirBtn = document.getElementById('detailGetDirectionsBtn');
+      dirBtn.onclick = () => {
+        document.getElementById('tabBtnDirections').click();
+        document.getElementById('routeDestSelect').value = loc.id;
+        // Default start to main gate if not selected
+        const startVal = document.getElementById('routeStartSelect').value;
+        if (!startVal) {
+          document.getElementById('routeStartSelect').value = 'main-gate';
+        }
+        triggerCalculateRoute();
+      };
+
+      const copyBtn = document.getElementById('detailCopyLinkBtn');
+      copyBtn.onclick = () => {
+        const url = new URL(window.location.origin + window.location.pathname);
+        url.searchParams.set('loc', loc.id);
+        copyToClipboard(url.toString(), 'Link copied');
+      };
+    }
+
+    function setupRouteActions() {
+      // Use main gate
+      document.getElementById('btnUseMainGate').addEventListener('click', () => {
+        document.getElementById('routeStartSelect').value = 'main-gate';
+        document.getElementById('startErrorHint').style.display = 'none';
+      });
+
+      // Swap
+      document.getElementById('btnSwapRoute').addEventListener('click', () => {
+        const startSel = document.getElementById('routeStartSelect');
+        const destSel = document.getElementById('routeDestSelect');
+        const temp = startSel.value;
+        startSel.value = destSel.value;
+        destSel.value = temp;
+        if (startSel.value && destSel.value) {
+          triggerCalculateRoute();
+        }
+      });
+
+      // Calculate
+      document.getElementById('routeForm').addEventListener('submit', () => {
+        triggerCalculateRoute();
+      });
+
+      // Clear
+      document.getElementById('btnClearRoute').addEventListener('click', () => {
+        document.getElementById('routeStartSelect').value = '';
+        document.getElementById('routeDestSelect').value = '';
+        document.getElementById('routeOutputArea').innerHTML = '';
+        mapController.clearRoute();
+        updateUrlParam('from', null);
+        updateUrlParam('to', null);
+      });
+    }
+
+    function triggerCalculateRoute() {
+      const startId = document.getElementById('routeStartSelect').value;
+      const destId = document.getElementById('routeDestSelect').value;
+      const accessible = document.getElementById('accessibleToggle').checked;
+
+      const startHint = document.getElementById('startErrorHint');
+      const destHint = document.getElementById('destErrorHint');
+      const output = document.getElementById('routeOutputArea');
+
+      startHint.style.display = startId ? 'none' : 'block';
+      destHint.style.display = destId ? 'none' : 'block';
+
+      if (!startId || !destId) {
+        return;
+      }
+
+      const startLoc = appState.getLocationById(startId);
+      const destLoc = appState.getLocationById(destId);
+
+      if (!startLoc || !destLoc) return;
+
+      const result = router.findRoute(startLoc.nodeId, destLoc.nodeId, accessible);
+
+      updateUrlParam('from', startId);
+      updateUrlParam('to', destId);
+
+      // Handle Errors strictly matching PRD Section 6.5 & Section 11
+      if (!result.success) {
+        mapController.clearRoute();
+        output.innerHTML = `
+          <div class="empty-state" style="padding: var(--space-4);">
+            <h4 style="font-size: 16px; margin-bottom: 4px; color: var(--warn);">${result.message}</h4>
+            <p style="font-size: 13px; margin: 0;">Try choosing a different starting point or turning off the step-free toggle.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Draw route on map
+      mapController.drawRoute(result.pathNodes);
+
+      // Format Directions Output
+      output.innerHTML = `
+        <div class="route-result-box">
+          <div class="route-meta-strip">
+            <div class="route-stat">
+              <span class="route-stat-val">${result.totalMeters} m</span>
+              <span class="route-stat-lbl">Walking Distance</span>
+            </div>
+            <div class="route-stat" style="text-align: right;">
+              <span class="route-stat-val">~${result.estimatedMinutes} min</span>
+              <span class="route-stat-lbl">Estimated Time</span>
+            </div>
+          </div>
+
+          <ol class="route-steps-list">
+            ${result.steps.map(s => `
+              <li class="route-step-item">
+                <span class="route-step-num">${s.step}</span>
+                <span>${s.instruction}</span>
+              </li>
+            `).join('')}
+          </ol>
+
+          <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2); border-top: 1px solid var(--line); padding-top: var(--space-3);">
+            <button type="button" class="btn btn-outline btn-sm" id="btnCopyDirections" style="flex: 1;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Directions
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="btnPrintDirections">
+              Print
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Copy text directions
+      document.getElementById('btnCopyDirections').addEventListener('click', () => {
+        const text = `Route from ${startLoc.name} to ${destLoc.name} (${result.totalMeters} m, ~${result.estimatedMinutes} min):\n\n` +
+          result.steps.map(s => `${s.step}. ${s.instruction}`).join('\n');
+        copyToClipboard(text, 'Directions copied');
+      });
+
+      // Print action
+      document.getElementById('btnPrintDirections').addEventListener('click', () => {
+        window.print();
+      });
+    }
+
+    function handleInitialUrlParams() {
+      const params = getUrlParams();
+
+      if (params.cat && params.cat.length > 0) {
+        const catId = params.cat[0];
+        const chip = document.querySelector(`.map-filter-bar .chip[data-category="${catId}"]`);
+        if (chip) chip.click();
+      }
+
+      if (params.loc) {
+        const loc = appState.getLocationById(params.loc);
+        if (loc) {
+          mapController.selectLocation(loc.id, true);
+        }
+      }
+
+      if (params.from && params.to) {
+        document.getElementById('routeStartSelect').value = params.from;
+        document.getElementById('routeDestSelect').value = params.to;
+        document.getElementById('tabBtnDirections').click();
+        triggerCalculateRoute();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initMapPage);
+  </script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore Locations Directory | Smart Campus Navigation</title>
+  <meta name="description" content="Searchable directory of campus buildings, lecture halls, faculty offices, laboratories, and amenities.">
+  
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header scrolled" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Smart Campus Navigation System Home">
+        <div class="brand-logo" aria-hidden="true">A</div>
+        <div class="brand-text">
+          <span class="brand-name">Campus Atlas</span>
+          <span class="brand-subtitle">Sample University</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="map.html">Campus Map</a></li>
+          <li><a href="locations.html" class="active" aria-current="page">Explore Locations</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="map.html" class="btn btn-signal btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+          </svg>
+          Open Map
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="section" role="main" style="padding-top: var(--space-12);">
+    <div class="container">
+      
+      <!-- Page Header -->
+      <div style="margin-bottom: var(--space-8);">
+        <span class="label-mono">Comprehensive Directory</span>
+        <h1 style="font-size: var(--text-h2); margin-top: 4px;">Explore Locations</h1>
+        <p class="lead">Search and filter every building, facility, laboratory and student amenity across the campus grounds.</p>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-wrapper" style="margin-bottom: var(--space-6);">
+        <div class="search-bar-hero" role="search">
+          <svg class="search-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <label for="dirSearchInput" class="sr-only">Search a building, lab or office</label>
+          <input type="text" id="dirSearchInput" class="search-input" placeholder="Search a building, lab or office (e.g. Physics Lab 2, Library, Admin)" autocomplete="off" spellcheck="false">
+          <button type="button" id="dirSearchClear" class="search-clear-btn" aria-label="Clear search query">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Chips (Multi-Select - PRD Section 6.3) -->
+      <div style="margin-bottom: var(--space-4);">
+        <div class="filter-chips-row" id="dirCategoryChips" role="group" aria-label="Filter by categories">
+          <!-- Injected via script -->
+        </div>
+      </div>
+
+      <!-- Directory Controls: Count, Sort, Grid/List Toggle, Clear Filters (PRD Section 6.3) -->
+      <div class="directory-controls">
+        <div class="directory-meta">
+          <span id="resultCountBadge" style="font-weight: 600; color: var(--ink);" aria-live="polite">Loading locations...</span>
+          <button type="button" class="btn btn-outline btn-sm" id="btnClearFilters" style="display: none; padding: 2px 10px; min-height: 30px; font-size: 12px;">
+            Clear filters
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: var(--space-4);">
+          <div style="display: flex; align-items: center; gap: var(--space-2);">
+            <label for="dirSortSelect" style="font-size: 13px; color: var(--ink-2);">Sort by:</label>
+            <select id="dirSortSelect" class="route-select" style="min-height: 36px; padding: 0 10px; font-size: 13px;">
+              <option value="name">Name (A &ndash; Z)</option>
+              <option value="category">Category</option>
+              <option value="building">Building Code</option>
+            </select>
+          </div>
+
+          <div class="view-toggle" role="radiogroup" aria-label="Directory layout toggle">
+            <button type="button" class="active" id="btnViewGrid" role="radio" aria-checked="true" aria-label="Grid view">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              Grid
+            </button>
+            <button type="button" id="btnViewList" role="radio" aria-checked="false" aria-label="List view">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              List
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Locations Listing Area -->
+      <div id="locationsContainer" class="locations-grid" aria-live="polite">
+        <!-- Injected cards -->
+      </div>
+
+      <!-- Empty State (PRD Section 6.3, 11) -->
+      <div id="dirEmptyState" class="empty-state" style="display: none; margin-top: var(--space-8);">
+        <h3 id="emptyHeading">No match found</h3>
+        <p id="emptyMessage">No match for query. Try a building name, or browse by category.</p>
+        <div id="emptyCategoryLinks" style="display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-4);">
+          <!-- Injected category shortcuts -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="brand" style="margin-bottom: var(--space-3);">
+            <div class="brand-logo" aria-hidden="true">A</div>
+            <div class="brand-text">
+              <span class="brand-name">Campus Atlas</span>
+              <span class="brand-subtitle">Sample University</span>
+            </div>
+          </div>
+          <p style="max-width: 380px;">An accurate, accessible spatial guide helping university members and visitors navigate campus facilities with clarity and ease.</p>
+          <p style="font-size: 13px; color: var(--ink-2); margin-top: var(--space-4);">
+            <strong>Data Status:</strong> All current entries are labeled Verified or Sample. Sample data is provided for testing and is never presented as factual.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul class="footer-nav">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="map.html">Interactive Campus Map</a></li>
+            <li><a href="locations.html">Explore Locations Directory</a></li>
+            <li><a href="about.html">About & Data Verification</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Filter by Category</h4>
+          <ul class="footer-nav">
+            <li><a href="locations.html?cat=academic">Academic Blocks</a></li>
+            <li><a href="locations.html?cat=library">Libraries & Archives</a></li>
+            <li><a href="locations.html?cat=lab">Laboratories</a></li>
+            <li><a href="locations.html?cat=cafeteria">Cafeterias & Food</a></li>
+            <li><a href="locations.html?cat=parking">Parking Lots</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Sample University Campus Atlas. All rights reserved.</div>
+        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);">
+          Built as a student project. No tracking cookies.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { appState, showToast, getUrlParams, updateUrlParam } from './js/main.js';
+    import { CampusSearch } from './js/search.js';
+
+    let searchEngine = null;
+    let selectedCategories = [];
+    let currentQuery = '';
+    let currentSort = 'name';
+    let isGridView = true;
+
+    async function initDirectory() {
+      await appState.loadData();
+      searchEngine = new CampusSearch(appState.locations, appState.categories);
+
+      // Render Category Filter Chips (Multi-Select)
+      renderCategoryChips();
+
+      // Read URL Params
+      const params = getUrlParams();
+      if (params.q) {
+        currentQuery = params.q;
+        document.getElementById('dirSearchInput').value = params.q;
+        document.getElementById('dirSearchClear').classList.add('visible');
+      }
+      if (params.cat && params.cat.length > 0) {
+        selectedCategories = [...params.cat];
+        updateChipsActiveState();
+      }
+
+      // Event Listeners
+      setupSearchEvents();
+      setupControls();
+
+      // Initial Render
+      renderDirectory();
+    }
+
+    function renderCategoryChips() {
+      const container = document.getElementById('dirCategoryChips');
+      container.innerHTML = appState.categories.map(c => `
+        <button type="button" class="chip" data-category="${c.id}" aria-pressed="false">
+          ${c.label}
+        </button>
+      `).join('');
+
+      container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chip');
+        if (!btn) return;
+        const catId = btn.getAttribute('data-category');
+
+        if (selectedCategories.includes(catId)) {
+          selectedCategories = selectedCategories.filter(c => c !== catId);
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        } else {
+          selectedCategories.push(catId);
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        }
+
+        updateUrlParam('cat', selectedCategories);
+        renderDirectory();
+      });
+
+      // Also render empty state shortcut category links
+      const emptyCatLinks = document.getElementById('emptyCategoryLinks');
+      if (emptyCatLinks) {
+        emptyCatLinks.innerHTML = appState.categories.map(c => `
+          <button type="button" class="chip" onclick="window.location.search = '?cat=${c.id}'">
+            ${c.label}
+          </button>
+        `).join('');
+      }
+    }
+
+    function updateChipsActiveState() {
+      document.querySelectorAll('#dirCategoryChips .chip').forEach(btn => {
+        const catId = btn.getAttribute('data-category');
+        const active = selectedCategories.includes(catId);
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    function setupSearchEvents() {
+      const input = document.getElementById('dirSearchInput');
+      const clearBtn = document.getElementById('dirSearchClear');
+      let timer = null;
+
+      input.addEventListener('input', (e) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          currentQuery = e.target.value.trim();
+          clearBtn.classList.toggle('visible', currentQuery.length > 0);
+          updateUrlParam('q', currentQuery);
+          renderDirectory();
+        }, 100);
+      });
+
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        currentQuery = '';
+        clearBtn.classList.remove('visible');
+        updateUrlParam('q', null);
+        renderDirectory();
+        input.focus();
+      });
+    }
+
+    function setupControls() {
+      // Sort select
+      document.getElementById('dirSortSelect').addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        renderDirectory();
+      });
+
+      // Clear filters button
+      document.getElementById('btnClearFilters').addEventListener('click', () => {
+        selectedCategories = [];
+        currentQuery = '';
+        document.getElementById('dirSearchInput').value = '';
+        document.getElementById('dirSearchClear').classList.remove('visible');
+        updateChipsActiveState();
+        updateUrlParam('cat', null);
+        updateUrlParam('q', null);
+        renderDirectory();
+      });
+
+      // View toggle (Grid / List)
+      const btnGrid = document.getElementById('btnViewGrid');
+      const btnList = document.getElementById('btnViewList');
+      const container = document.getElementById('locationsContainer');
+
+      btnGrid.addEventListener('click', () => {
+        isGridView = true;
+        btnGrid.classList.add('active');
+        btnGrid.setAttribute('aria-checked', 'true');
+        btnList.classList.remove('active');
+        btnList.setAttribute('aria-checked', 'false');
+        container.className = 'locations-grid';
+      });
+
+      btnList.addEventListener('click', () => {
+        isGridView = false;
+        btnList.classList.add('active');
+        btnList.setAttribute('aria-checked', 'true');
+        btnGrid.classList.remove('active');
+        btnGrid.setAttribute('aria-checked', 'false');
+        container.className = 'locations-list';
+      });
+    }
+
+    function renderDirectory() {
+      const results = searchEngine.search(currentQuery, selectedCategories, currentSort);
+      const container = document.getElementById('locationsContainer');
+      const emptyState = document.getElementById('dirEmptyState');
+      const countBadge = document.getElementById('resultCountBadge');
+      const clearBtn = document.getElementById('btnClearFilters');
+
+      // Update count & clear button visibility
+      countBadge.textContent = `${results.length} location${results.length === 1 ? '' : 's'}`;
+      clearBtn.style.display = (selectedCategories.length > 0 || currentQuery.length > 0) ? 'inline-flex' : 'none';
+
+      if (results.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        // PRD Section 6.3 Empty state copy
+        document.getElementById('emptyHeading').textContent = `No match for '${currentQuery || 'filters'}'`;
+        document.getElementById('emptyMessage').textContent = `No match for '${currentQuery || 'selected categories'}'. Try a building name, or browse by category below.`;
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      container.innerHTML = results.map(item => {
+        const badge = item.verified
+          ? `<span class="badge badge-verified">Verified</span>`
+          : `<span class="badge badge-sample">Sample data</span>`;
+
+        return `
+          <article class="location-card" id="card-${item.id}">
+            <div>
+              <div class="location-card-header">
+                <span class="location-code">${item.building}</span>
+                ${badge}
+              </div>
+              <h2 class="location-card-title">${CampusSearch.highlight(item.name, currentQuery)}</h2>
+              <div class="label-mono" style="margin-bottom: var(--space-2);">${item.category} &middot; ${item.floor}</div>
+              <p class="location-card-desc">${CampusSearch.highlight(item.description, currentQuery)}</p>
+            </div>
+
+            <div class="location-card-footer">
+              <a href="map.html?loc=${item.id}" class="btn btn-outline btn-sm" style="min-height: 32px;">
+                View on map &rarr;
+              </a>
+              <a href="map.html?to=${item.id}" class="btn btn-primary btn-sm" style="min-height: 32px;">
+                Directions
+              </a>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', initDirectory);
+  </script>
+</body>
+</html>
